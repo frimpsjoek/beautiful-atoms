@@ -51,6 +51,10 @@ def register():
     # class
     ops.register_class()
     gui.register_class()
+    # Batoms Studio tab (publication output, lighting, series, animation, defects)
+    from . import studio
+
+    studio.register_class()
     # manual
     ops.register_manual_map()
     # menu
@@ -74,6 +78,9 @@ def unregister():
     internal_data.unregister_class()
     ops.unregister_class()
     gui.unregister_class()
+    from . import studio
+
+    studio.unregister_class()
     # manual
     ops.unregister_manual_map()
     # menu

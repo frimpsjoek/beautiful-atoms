@@ -44,7 +44,12 @@ class Isosurface(BaseObject):
                 ]
             else:
                 volume = self.batoms.volumetric_data[iso.volumetric_data]
-            scaled_verts, faces = calc_isosurface(volume, cell, iso.level)
+            quality = self.batoms.coll.Bisosurface
+            if quality.upsample_to and min(volume.shape) < quality.upsample_to:
+                volume = upsample_volume(volume, quality.upsample_to)
+            scaled_verts, faces = calc_isosurface(
+                volume, cell, iso.level, step_size=quality.step_size
+            )
             # color by another volumetric data
             if iso.color_by != "None":
                 from ...utils import map_volumetric_data
@@ -121,9 +126,15 @@ class Isosurface(BaseObject):
             )
             obj.batoms.type = "ISOSURFACE"
             obj.batoms.label = self.label
-            from ...utils.butils import attach_child
+            from ...utils.butils import attach_child, shade_smooth
 
             attach_child(obj, self.batoms.obj)
+            # smoothing is part of the draw, so it survives every redraw
+            shade_smooth(obj)
+            n_smooth = self.batoms.coll.Bisosurface.smooth
+            if n_smooth > 0:
+                mod = obj.modifiers.new("iso_smooth", "SMOOTH")
+                mod.factor, mod.iterations = 0.5, n_smooth
             if isosurface_data["attribute_data"] is not None:
                 from ...utils.attribute import set_mesh_attribute
 
@@ -162,6 +173,34 @@ class Isosurface(BaseObject):
         data["settings"] = self.settings.as_dict()
         data.update(self.settings.bpy_data.as_dict())
         return data
+
+
+def upsample_volume(volume, target):
+    """Cubic interpolation so the shortest grid axis has ``target`` points.
+
+    The grid still spans the same cell (periodic, grid-mode zoom), so the
+    surface stays in place; it only gets smoother.
+    """
+    from scipy.ndimage import zoom
+
+    factor = target / min(volume.shape)
+    return zoom(np.asarray(volume, dtype=float), factor, order=3, mode="grid-wrap", grid_mode=True)
+
+
+def enclosing_level(volume, fraction=0.85):
+    """(level, signed): isovalue enclosing ``fraction`` of the weight.
+
+    Signed data (orbitals): weight |psi|^2, level on |psi|.
+    Densities: weight rho (negative values ignored).
+    """
+    v = np.asarray(volume, dtype=float).ravel()
+    signed = v.min() < -0.05 * np.abs(v).max()
+    values = np.abs(v) if signed else np.clip(v, 0, None)
+    weights = values**2 if signed else values
+    order = np.argsort(values)[::-1]
+    cum = np.cumsum(weights[order])
+    idx = min(int(np.searchsorted(cum, fraction * cum[-1])), len(order) - 1)
+    return float(values[order][idx]), bool(signed)
 
 
 def calc_isosurface(

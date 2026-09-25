@@ -15,6 +15,7 @@ classes = [
     ops.IsosurfaceAdd,
     ops.IsosurfaceRemove,
     ops.IsosurfaceDraw,
+    ops.IsosurfaceAutoLevel,
     ui_list.BATOMS_MT_isosurface_context_menu,
     ui_list.BATOMS_UL_isosurface,
     ui_list.BATOMS_PT_isosurface,

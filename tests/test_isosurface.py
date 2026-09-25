@@ -99,3 +99,41 @@ def test_draw_single(h2o_homo):
     h2o.isosurface.draw("2")
     names = [o.name for o in bpy.data.objects if o.batoms.type == "ISOSURFACE"]
     assert names == [f"{h2o.label}_isosurface_2"]
+
+
+def _iso_objects(label):
+    return {o.name: o for o in bpy.data.objects if o.batoms.type == "ISOSURFACE" and o.batoms.label == label}
+
+
+def test_quality_and_auto_level(h2o_homo):
+    """Upsampling, detail step, persistent smoothing, automatic +/- level."""
+    from batoms.plugins.isosurface.isosurface import enclosing_level
+
+    h2o = h2o_homo
+    q = h2o.coll.Bisosurface
+    h2o.isosurface.settings["1"] = {"level": 0.05}
+    q.upsample_to, q.smooth, q.step_size = 0, 0, 1
+    h2o.isosurface.draw()
+    raw = len(next(iter(_iso_objects(h2o.label).values())).data.vertices)
+    q.upsample_to = 60
+    h2o.isosurface.draw()
+    fine = len(next(iter(_iso_objects(h2o.label).values())).data.vertices)
+    assert fine > raw
+    q.step_size = 2
+    h2o.isosurface.draw()
+    coarse = len(next(iter(_iso_objects(h2o.label).values())).data.vertices)
+    assert coarse < fine
+    q.step_size, q.smooth = 1, 6
+    h2o.isosurface.draw()
+    h2o.isosurface.draw()  # smoothing must survive a redraw
+    obj = next(iter(_iso_objects(h2o.label).values()))
+    assert obj.modifiers["iso_smooth"].iterations == 6
+    # auto level: signed orbital -> +/- rows at the enclosing level
+    bpy.context.view_layer.objects.active = h2o.obj
+    assert bpy.ops.surface.isosurface_auto_level() == {"FINISHED"}
+    vol = h2o.volumetric_data[list(h2o.volumetric_data.keys())[0]]
+    level, signed = enclosing_level(vol, q.enclose)
+    assert signed
+    levels = sorted(r.level for r in q.settings)
+    assert np.allclose(levels, [-level, level])
+    assert len(_iso_objects(h2o.label)) == 2

@@ -106,6 +106,20 @@ class Isosurface(bpy.types.PropertyGroup):
 
     active: BoolProperty(name="active", default=False)
     settings: CollectionProperty(name="IsosurfaceSetting", type=IsosurfaceSetting)
+    upsample_to: IntProperty(
+        name="Grid", default=0, min=0, soft_max=256,
+        description="Interpolate the grid to this many points on its shortest axis before "
+        "contouring (0 = raw grid). Smooths the surface, adds no detail",
+    )
+    smooth: IntProperty(name="Smooth", default=8, min=0, max=50,
+                        description="Smooth modifier iterations (kept on every redraw)")
+    step_size: IntProperty(name="Detail step", default=1, min=1, max=6,
+                           description="Marching-cubes step: 1 = full detail, larger = coarser")
+    enclose: FloatProperty(
+        name="Enclose", default=0.85, min=0.05, max=0.999,
+        description="Auto level: surface encloses this fraction of |psi|^2 (signed data) "
+        "or of the density",
+    )
 
     ui_list_index: IntProperty(name="ui_list_index", default=0)
 

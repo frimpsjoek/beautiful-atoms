@@ -122,3 +122,12 @@ class BATOMS_PT_isosurface(Panel):
             op = layout.operator(
                 "surface.isosurface_draw", icon="GREASEPENCIL", text="Draw"
             )
+        # quality and automatic level (apply to all rows of this structure)
+        box = layout.box().column(align=True)
+        box.label(text="Quality & auto level")
+        box.prop(ba, "upsample_to")
+        box.prop(ba, "smooth")
+        box.prop(ba, "step_size")
+        row = box.row(align=True)
+        row.prop(ba, "enclose", slider=True)
+        row.operator("surface.isosurface_auto_level", icon="AUTO")

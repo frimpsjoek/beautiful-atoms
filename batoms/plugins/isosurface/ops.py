@@ -58,6 +58,45 @@ class IsosurfaceDraw(OperatorBatoms):
         return {"FINISHED"}
 
 
+class IsosurfaceAutoLevel(OperatorBatoms):
+    bl_idname = "surface.isosurface_auto_level"
+    bl_label = "Auto level"
+    bl_description = (
+        "Set the isovalue so the surface encloses the Enclose fraction of the weight "
+        "(|psi|^2 for orbitals, density otherwise). For signed data positive and "
+        "negative rows get +/-level (a negative row is added if missing). Then draws"
+    )
+
+    def execute(self, context):
+        from .isosurface import enclosing_level
+
+        batoms = Batoms(label=context.object.batoms.label)
+        iso = batoms.coll.Bisosurface
+        names = list(batoms.volumetric_data.keys()) if hasattr(batoms.volumetric_data, "keys") else []
+        if not names:
+            self.report({"ERROR"}, "No volumetric data on this structure")
+            return {"CANCELLED"}
+        rows = iso.settings
+        vol_name = (rows[iso.ui_list_index].volumetric_data if len(rows) else "") or names[0]
+        level, signed = enclosing_level(batoms.volumetric_data[vol_name], iso.enclose)
+        if len(rows) == 0:
+            batoms.isosurface.settings["positive"] = {"level": level, "volumetric_data": vol_name}
+        if signed and not any(r.level < 0 for r in rows):
+            batoms.isosurface.settings["negative"] = {
+                "level": -level, "color": [0.0, 0.52, 0.69, 0.5], "volumetric_data": vol_name,
+            }
+        for r in batoms.coll.Bisosurface.settings:
+            r.level = -level if r.level < 0 else level
+        batoms.isosurface.draw()
+        self.report(
+            {"INFO"},
+            "Isovalue {}{:.4g} (encloses {:.0%} of {})".format(
+                "+/-" if signed else "", level, iso.enclose, "|psi|^2" if signed else "the density"
+            ),
+        )
+        return {"FINISHED"}
+
+
 class IsosurfaceModify(Operator):
     bl_idname = "surface.isosurface_modify"
     bl_label = "Modify Isosurface"
