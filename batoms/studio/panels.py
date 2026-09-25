@@ -80,4 +80,80 @@ class BATOMS_PT_studio_lights(_Base, bpy.types.Panel):
         box.prop(s, "device", expand=True)
 
 
-classes = [BATOMS_PT_studio_figure, BATOMS_PT_studio_lights]
+class BATOMS_PT_studio_series(_Base, bpy.types.Panel):
+    bl_label = "Series import"
+    bl_order = 0
+
+    def draw(self, context):
+        col = self.layout.column()
+        col.operator("batoms.import_series", icon="FILE_FOLDER")
+        col.label(text="Select many files (shift / box select)", icon="INFO")
+        col.label(text="Append: select the structure first")
+
+
+class BATOMS_PT_studio_volume(_Base, bpy.types.Panel):
+    bl_label = "Volume animation"
+    bl_order = 3
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        s = context.scene.batoms_studio
+        col = self.layout.column()
+        col.prop(s, "volumes_path", text="")
+        if s.anim_label:
+            col.label(text=f"Structure: {s.anim_label}", icon="OUTLINER_OB_MESH")
+        box = col.box().column(align=True)
+        box.label(text="Isovalue")
+        box.prop(s, "level", text="Level (0 = auto)")
+        sub = box.column()
+        sub.enabled = s.level == 0
+        sub.prop(s, "enclose", slider=True)
+        box.prop(s, "reference")
+        box.prop(s, "align_signs")
+        box = col.box().column(align=True)
+        box.label(text="Colors")
+        row = box.row(align=True)
+        row.prop(s, "positive_color")
+        row.prop(s, "negative_color")
+        box.prop(s, "iso_alpha", slider=True)
+        box = col.box().column(align=True)
+        box.label(text="Timing")
+        box.prop(s, "method", text="")
+        box.prop(s, "substeps")
+        box = col.box().column(align=True)
+        box.label(text="Quality")
+        box.prop(s, "upsample_to")
+        box.prop(s, "smooth")
+        box.prop(s, "step_size")
+        row = col.row(align=True)
+        row.operator("batoms.volume_anim_build", icon="RENDER_ANIMATION")
+        row.operator("batoms.volume_anim_update", icon="FILE_REFRESH")
+        col.operator("batoms.volume_anim_verify", icon="CHECKMARK")
+        if s.anim_report:
+            col.label(text=s.anim_report)
+
+
+class BATOMS_PT_studio_defect(_Base, bpy.types.Panel):
+    bl_label = "Defect"
+    bl_order = 4
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        s = context.scene.batoms_studio
+        col = self.layout.column()
+        col.label(text="Tab into Edit Mode, select atoms", icon="INFO")
+        col.prop(s, "vacancy_radius")
+        row = col.row(align=True)
+        row.prop(s, "vacancy_color")
+        row.prop(s, "neighbour_color")
+        col.prop(s, "neighbour_scale")
+        col.operator("batoms.make_vacancy", icon="MESH_UVSPHERE")
+
+
+classes = [
+    BATOMS_PT_studio_series,
+    BATOMS_PT_studio_figure,
+    BATOMS_PT_studio_lights,
+    BATOMS_PT_studio_volume,
+    BATOMS_PT_studio_defect,
+]

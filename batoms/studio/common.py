@@ -106,3 +106,19 @@ def frame_camera(b, direction, orthographic=True):
 def width_pixels(settings):
     width_mm = settings.width_mm if settings.journal == "CUSTOM" else JOURNAL_WIDTHS_MM[settings.journal][1]
     return int(round(width_mm / 25.4 * settings.dpi)), width_mm
+
+
+def replace_trajectory(b, positions):
+    """Replace the whole trajectory of ``b`` with ``positions`` (n, natoms, 3).
+
+    Setting a trajectory on top of an existing one leaves the old shape-key
+    keyframes in place and they blend with the new frames, so the old keys
+    (and their animation) are removed first.
+    """
+    positions = np.asarray(positions, dtype=float)
+    obj = b.obj
+    if obj.data.shape_keys is not None:
+        obj.shape_key_clear()
+    b.positions = positions[0]
+    if len(positions) > 1:
+        b.set_trajectory({"positions": positions})

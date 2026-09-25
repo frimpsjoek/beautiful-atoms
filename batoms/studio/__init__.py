@@ -8,11 +8,11 @@ so the interface and scripts share one implementation.
 import bpy
 from bpy.props import PointerProperty
 
-from . import ops_studio, panels, props
+from . import ops_studio, ops_tools, panels, props
 
 
 def _classes():
-    return [props.BatomsStudioSettings] + ops_studio.classes + panels.classes
+    return [props.BatomsStudioSettings] + ops_studio.classes + ops_tools.classes + panels.classes
 
 
 def register_class():
