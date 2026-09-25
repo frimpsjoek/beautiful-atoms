@@ -137,7 +137,9 @@ class Light(BaseObject):
                 light_data = bpy.data.lights.new(self.obj_name, type=type)
             light = bpy.data.objects.new(self.obj_name, light_data)
             light.data.energy = energy
-            light.data.use_nodes = True
+            # node trees always exist in Blender >= 5.0 (use_nodes is deprecated)
+            if bpy.app.version < (5, 0, 0):
+                light.data.use_nodes = True
             light.data.node_tree.nodes["Emission"].inputs[
                 "Strength"
             ].default_value = 0.1

@@ -184,6 +184,22 @@ def set_mesh_attribute_bmesh(obj, key, value, index=None):
         bm.free()
 
 
+# numpy dtype matching each attribute's internal storage; ``foreach_set``
+# in Blender >= 5.0 rejects multi-dimensional arrays of mismatched dtype
+# (e.g. int64 with shape (n, 1) -> "couldn't access the py sequence").
+_FOREACH_DTYPES = {
+    "FLOAT": np.float32,
+    "INT": np.int32,
+    "INT8": np.int8,
+    "BOOLEAN": bool,
+}
+
+
+def _flat(value, dtype=None):
+    """Return ``value`` as a contiguous 1-D array for ``foreach_set``."""
+    return np.ascontiguousarray(value, dtype=dtype).ravel()
+
+
 def set_mesh_attribute(obj, key, value, index=None):
     """Set mesh attribute using bmesh method
 
@@ -207,17 +223,12 @@ def set_mesh_attribute(obj, key, value, index=None):
         if att.data_type == "STRING":
             for j in range(n):
                 att.data[j].value = value[j]
-        elif att.data_type == "FLOAT2":
-            value = value.reshape((n * 2, 1))
-            att.data.foreach_set("vector", value)
-        elif att.data_type == "FLOAT_VECTOR":
-            value = value.reshape((n * 3, 1))
-            att.data.foreach_set("vector", value)
+        elif att.data_type in ["FLOAT2", "FLOAT_VECTOR"]:
+            att.data.foreach_set("vector", _flat(value, np.float32))
         elif att.data_type in ["FLOAT_COLOR"]:
-            value = value.reshape((n * 4, 1))
-            att.data.foreach_set("color", value)
+            att.data.foreach_set("color", _flat(value, np.float32))
         elif att.data_type in ["QUATERNION"]:
-            value = value.reshape((n * 4, 1))
-            att.data.foreach_set("value", value)
+            att.data.foreach_set("value", _flat(value, np.float32))
         else:
-            att.data.foreach_set("value", value)
+            dtype = _FOREACH_DTYPES.get(att.data_type)
+            att.data.foreach_set("value", _flat(value, dtype))

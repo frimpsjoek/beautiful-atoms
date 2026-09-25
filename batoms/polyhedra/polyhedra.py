@@ -476,7 +476,7 @@ class Polyhedra(ObjectGN):
             raise ValueError("offsets has wrong shape %s != %s." % (len(offsets), n))
         if n == 0:
             return
-        offsets = offsets.reshape((n * 3, 1))
+        offsets = offsets.reshape(-1)
         self.obj_o.data.shape_keys.key_blocks[0].data.foreach_set("co", offsets)
         self.obj_o.data.update()
 

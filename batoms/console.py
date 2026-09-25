@@ -1,6 +1,10 @@
 import bpy
-import console_python
 import logging
+
+try:
+    import console_python
+except ImportError:  # Blender >= 4.2 made the module private
+    import _console_python as console_python
 
 logger = logging.getLogger(__name__)
 

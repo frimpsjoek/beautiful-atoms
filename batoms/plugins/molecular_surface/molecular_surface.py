@@ -555,7 +555,7 @@ class MolecularSurface(BaseObject):
                 vertices, normals, positions, indices, mask1, mask2, mask3
             )
         vertices = vertices - normals * self.probe
-        vertices = vertices.reshape(-1, 1)
+        vertices = vertices.reshape(-1)
         me.vertices.foreach_set("co", vertices)
         # return
         # ----------------------------------
@@ -776,7 +776,7 @@ class MolecularSurface(BaseObject):
         vertices[indices3] = self.origins_probe3 + self.probe * normals3
         # draw_vertices('origin3', origins_probe)
         # ----------------------------------------------------------
-        vertices = vertices.reshape(-1, 1)
+        vertices = vertices.reshape(-1)
         me.vertices.foreach_set("co", vertices)
         me.update()
         logger.debug("refine vertices: %s" % (time() - tstart))

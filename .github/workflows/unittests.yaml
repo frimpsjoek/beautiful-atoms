@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        blender-version: ["4.2.3", "4.3.2"]
+        blender-version: ["4.2.3", "4.3.2", "5.2.2"]
 
     container:
       image: linuxserver/blender:${{ matrix.blender-version }}
@@ -30,7 +30,10 @@ jobs:
           echo "Blender Major.Minor version set to: $BLENDER_MAJOR_MINOR"
 
           # Define a shorter path for Python inside Blender
-          echo "BLENDER_PYTHON=/blender/$BLENDER_MAJOR_MINOR/python/bin/python3.11" >> $GITHUB_ENV
+          # (Python 3.11 for Blender 4.2-4.5, 3.13 for Blender 5.x)
+          BLENDER_PYTHON=$(ls -d /blender/$BLENDER_MAJOR_MINOR/python/bin/python3.* | head -n 1)
+          echo "BLENDER_PYTHON=$BLENDER_PYTHON" >> $GITHUB_ENV
+          echo "BLENDER_PY_VERSION=$($BLENDER_PYTHON -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')" >> $GITHUB_ENV
           echo "BLENDER_CMD=blender --command" >> $GITHUB_ENV
 
       - name: Install Git
@@ -57,7 +60,7 @@ jobs:
 
       - name: Build the extension
         run: |
-          $BLENDER_PYTHON -m pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=manylinux_2_17_x86_64
+          $BLENDER_PYTHON -m pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=$BLENDER_PY_VERSION --platform=manylinux_2_17_x86_64
           $BLENDER_PYTHON scripts/update_wheels.py
           $BLENDER_CMD extension build --source-dir batoms --output-dir .
 

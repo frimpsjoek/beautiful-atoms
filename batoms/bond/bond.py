@@ -307,7 +307,17 @@ class Bond(BaseCollection, ObjectGN):
             nodes, "%s_MeshToPoints_edge" % (self.label), "GeometryNodeMeshToPoints"
         )
         MeshToPoints.mode = "EDGES"
-        links.new(GroupInput.outputs["Geometry"], MeshToPoints.inputs["Mesh"])
+        # Blender >= 5.0 hits an internal "unreachable" error when Mesh to
+        # Points (EDGES) interpolates a STRING point attribute onto edges.
+        # Bonds only need numeric attributes, so drop "species" first.
+        RemoveSpecies = get_node_by_name(
+            nodes,
+            "%s_RemoveAttribute_species" % (self.label),
+            "GeometryNodeRemoveAttribute",
+        )
+        RemoveSpecies.inputs["Name"].default_value = "species"
+        links.new(GroupInput.outputs["Geometry"], RemoveSpecies.inputs["Geometry"])
+        links.new(RemoveSpecies.outputs["Geometry"], MeshToPoints.inputs["Mesh"])
         links.new(MeshToPoints.outputs["Points"], SetPosition.inputs["Geometry"])
         links.new(VectorDivide.outputs[0], SetPosition.inputs["Position"])
         links.new(SetPosition.outputs["Geometry"], GroupOutput.inputs["Geometry"])

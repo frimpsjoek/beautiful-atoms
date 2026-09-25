@@ -98,7 +98,9 @@ class HighlightSettings(Setting):
         #
         obj.users_collection[0].objects.unlink(obj)
         bpy.data.collections["%s_instancer" % self.label].objects.link(obj)
-        bpy.ops.object.shade_smooth()
+        from ...utils.butils import shade_smooth
+
+        shade_smooth(obj)
         obj.hide_set(True)
         obj.hide_render = True
         mat = self.build_materials(hl)

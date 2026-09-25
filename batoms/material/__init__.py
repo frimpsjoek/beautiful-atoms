@@ -52,7 +52,9 @@ def create_material(
         if hasattr(material, key):
             setattr(material, key, value)
     material.blend_method = "BLEND"
-    material.use_nodes = True
+    # node trees always exist in Blender >= 5.0 (use_nodes is deprecated)
+    if bpy.app.version < (5, 0, 0):
+        material.use_nodes = True
     #
     nodes = material.node_tree.nodes
     mat_links = material.node_tree.links

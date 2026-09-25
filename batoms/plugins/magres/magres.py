@@ -137,7 +137,10 @@ class Magres(BaseObject):
         # bpy.context.view_layer.objects.active = obj
         # TODO join objects is not working
         # bpy.ops.object.join(ctx)
-        bpy.ops.object.shade_smooth()
+        from ...utils.butils import shade_smooth
+
+        for o in objs:
+            shade_smooth(o)
         return bpy.data.objects[name]
 
     def draw_MS(self, magres):

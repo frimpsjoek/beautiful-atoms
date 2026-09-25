@@ -38,7 +38,7 @@ Another package, [weas-widget](https://github.com/superstar54/weas-widget), allo
 ### Extension
 One can build the extension locally by following the steps below.
 
-Download wheels for ase and scikit-image:
+Download wheels for ase and scikit-image. Use `--python-version=3.11` for Blender 4.2-4.5 and `--python-version=3.13` for Blender 5.x:
 ```
 pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=manylinux_2_17_x86_64
 pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=win_amd64

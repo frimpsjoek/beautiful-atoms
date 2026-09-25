@@ -270,7 +270,9 @@ class BondSettings(Setting):
         self.batoms.coll.children["%s_instancer" % self.label].objects.link(obj)
         # bpy.context.scene.objects.unlink(bb.obj)
         if shade_smooth:
-            bpy.ops.object.shade_smooth()
+            from ..utils.butils import shade_smooth
+
+            shade_smooth(obj)
         obj.hide_set(True)
         obj.hide_render = True
         obj.scale = [0.001, 0.001, 0.001]
@@ -389,7 +391,7 @@ class BondSettings(Setting):
         nvert = len(vertices)
         spline.points.add(nvert - 1)
         vertices = np.append(vertices, np.ones((nvert, 1)), axis=1)
-        vertices = vertices.reshape(-1, 1)
+        vertices = vertices.reshape(-1)
         spline.points.foreach_set("co", vertices)
         # bevel
         bpy.ops.curve.primitive_bezier_circle_add(

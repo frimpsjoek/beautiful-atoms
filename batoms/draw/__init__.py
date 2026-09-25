@@ -89,7 +89,6 @@ def draw_surface_from_vertices(name, datas, coll=None, use_smooth=True):
         battr = getattr(obj, name)
         for key, value in inputs.items():
             setattr(battr, key, value)
-    bpy.ops.object.shade_smooth()
     if coll is not None:
         coll.objects.link(obj)
     return obj
@@ -139,7 +138,9 @@ def draw_2d_slicing(name, datas, coll=None):
     plane.data.name = name
     plane.name = name
     material = bpy.data.materials.new(name=name)
-    material.use_nodes = True
+    # node trees always exist in Blender >= 5.0 (use_nodes is deprecated)
+    if bpy.app.version < (5, 0, 0):
+        material.use_nodes = True
     material.blend_method = "BLEND"
     node_tree = material.node_tree
     material_output = node_tree.nodes.get("Material Output")

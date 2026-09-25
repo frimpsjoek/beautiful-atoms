@@ -7,6 +7,28 @@ import logging
 # logger = logging.getLogger('batoms')
 logger = logging.getLogger(__name__)
 
+# EEVEE render engine id: "BLENDER_EEVEE_NEXT" in 4.2-4.x, "BLENDER_EEVEE" otherwise
+EEVEE_ENGINE = (
+    "BLENDER_EEVEE_NEXT" if (4, 2, 0) <= bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
+)
+
+
+def shade_smooth(obj):
+    """Smooth-shade one mesh object through the data API.
+
+    ``bpy.ops.object.shade_smooth`` acts on the current selection and its
+    poll fails outside Object Mode (e.g. importing while another object is
+    in Edit Mode), so avoid the operator.
+    """
+    if obj is None or obj.type != "MESH":
+        return
+    mesh = obj.data
+    if hasattr(mesh, "shade_smooth"):  # Blender >= 4.1
+        mesh.shade_smooth()
+    else:
+        mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
+        mesh.update()
+
 
 def get_preferences_addon(addon="batoms"):
     keys = [key for key in bpy.context.preferences.addons.keys() if addon in key]
@@ -58,9 +80,19 @@ def get_all_consoles():
 
 
 def object_mode():
-    for object in bpy.data.objects:
-        if object.mode == "EDIT":
-            bpy.ops.object.mode_set(mode="OBJECT")
+    """Switch to Object Mode from any other mode (Edit, Sculpt, Paint, ...).
+
+    Operators such as ``primitive_uv_sphere_add`` add geometry to the mesh
+    being edited instead of creating a new object when not in Object Mode.
+    """
+    if bpy.context.mode == "OBJECT":
+        return
+    if bpy.context.view_layer.objects.active is None:
+        for obj in bpy.context.view_layer.objects:
+            if obj.mode != "OBJECT":
+                bpy.context.view_layer.objects.active = obj
+                break
+    bpy.ops.object.mode_set(mode="OBJECT")
 
 
 def eidt_mode():
@@ -332,7 +364,9 @@ def lock_to(obj, target=None, location=True, rotation=True):
 def set_world(color=[0.2, 0.2, 0.2, 1.0]):
     """ """
     world = bpy.context.scene.world
-    world.use_nodes = True
+    # node trees always exist in Blender >= 5.0 (use_nodes is deprecated)
+    if bpy.app.version < (5, 0, 0):
+        world.use_nodes = True
     node_tree = world.node_tree
     node_tree.nodes["Background"].inputs["Strength"].default_value = 1.0
     node_tree.nodes["Background"].inputs["Color"].default_value = color
@@ -413,6 +447,23 @@ def build_gn_modifier(obj, name):
     return modifier
 
 
+def set_gn_input_attribute(modifier, identifier, attribute_name):
+    """Drive a geometry-nodes modifier input from a named attribute.
+
+    Blender >= 5.0 exposes modifier inputs through
+    ``modifier.properties.inputs``; older versions store them as
+    ID properties (``modifier["<id>_use_attribute"]``).
+    """
+    inputs = getattr(getattr(modifier, "properties", None), "inputs", None)
+    if inputs is not None:
+        socket = getattr(inputs, identifier)
+        socket.type = "ATTRIBUTE"
+        socket.attribute_name = attribute_name
+    else:
+        modifier["%s_use_attribute" % identifier] = True
+        modifier["%s_attribute_name" % identifier] = attribute_name
+
+
 def get_att_length(mesh, att):
     """get attribute length based on domain
 
@@ -480,7 +531,7 @@ def set_vertex_color(obj, name, color):
     npoint = len(color)
     mesh = obj.data
     if bpy.app.version_string >= "3.2.0":
-        color = color.reshape((npoint * 4, 1))
+        color = color.reshape(-1)
         mesh.color_attributes.new(name, "FLOAT_COLOR", "POINT")
         mesh.color_attributes[name].data.foreach_set("color", color)
     else:

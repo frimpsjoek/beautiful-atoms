@@ -89,6 +89,10 @@ class Species(BaseObject):
         Returns:
             bpy Object: instancer
         """
+        from .utils.butils import object_mode
+
+        # primitive_*_add only creates a new object in Object Mode
+        object_mode()
         sp = self.data
         name = "%s_%s" % (self.label, sp.name)
         radius = sp.radius * sp.scale
@@ -112,7 +116,9 @@ class Species(BaseObject):
         #
         obj.users_collection[0].objects.unlink(obj)
         bpy.data.collections["%s_instancer" % self.label].objects.link(obj)
-        bpy.ops.object.shade_smooth()
+        from .utils.butils import shade_smooth
+
+        shade_smooth(obj)
         if shape.upper() != "METABALL":
             obj.hide_set(True)
             obj.hide_render = True

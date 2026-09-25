@@ -1486,7 +1486,7 @@ class Batoms(BaseCollection, ObjectGN):
         # TODO: /home/xing/apps/beautiful-atoms/batoms/batoms.py:1269:
         # DeprecationWarning: In future, it will be an error for 'np.bool_'
         #  scalars to be interpreted as an index
-        self.coll.batoms.show = show[0]
+        self.coll.batoms.show = bool(show[0])
 
     @property
     def wrap(self):

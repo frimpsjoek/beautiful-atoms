@@ -33,10 +33,21 @@ def create_node_tree(name, node_group_type="GeometryNodeTree", interface=[]):
 
 
 def get_socket_by_identifier(node, identifier, type="inputs"):
-    """Get sockets by identifier"""
-    for inp in getattr(node, type):
+    """Get sockets by identifier.
+
+    Blender < 5.0 gives each data type its own socket (e.g. "A_INT",
+    "Attribute_Int"); Blender >= 5.0 has one socket whose type follows
+    the node's data_type ("A", "Attribute"). Fall back to the base name.
+    """
+    sockets = getattr(node, type)
+    for inp in sockets:
         if inp.identifier == identifier:
             return inp
+    base = identifier.rsplit("_", 1)[0]
+    if base != identifier:
+        for inp in sockets:
+            if inp.identifier == base:
+                return inp
     return None
 
 

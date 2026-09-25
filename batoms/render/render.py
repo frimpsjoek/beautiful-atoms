@@ -4,6 +4,7 @@ import numpy as np
 from ..base.collection import BaseCollection
 from ..render.light import Lights
 from ..render.camera import Camera
+from ..utils.butils import EEVEE_ENGINE
 import logging
 
 # logger = logging.getLogger('batoms')
@@ -43,7 +44,7 @@ class Render(BaseCollection):
         viewport: array
             The direction of the viewport windows.
         engine: str
-            enum in ['BLENDER_WORKBENCH', 'BLENDER_EEVEE_NEXT', 'CYCLES']
+            enum in ['BLENDER_WORKBENCH', 'BLENDER_EEVEE' (4.2-4.x: 'BLENDER_EEVEE_NEXT'), 'CYCLES']
         output: str:
             filepath for the output image
         animation: bool
@@ -123,7 +124,7 @@ class Render(BaseCollection):
 
     def set_engine(self, engine):
         if engine.upper() == "EEVEE":
-            engine = "BLENDER_EEVEE_NEXT"
+            engine = EEVEE_ENGINE
         elif engine.upper() == "WORKBENCH":
             engine = "BLENDER_WORKBENCH"
         elif engine.upper() == "CYCLES":
@@ -266,9 +267,9 @@ class Render(BaseCollection):
 
     @property
     def use_motion_blur(self):
-        if self.engine == "BLENDER_EEVEE_NEXT":
+        if self.engine == EEVEE_ENGINE:
             return bpy.context.scene.eevee.use_motion_blur
-        elif self.engine == "BLENDER_CYCLES":
+        elif self.engine == "CYCLES":
             return bpy.context.scene.cycles.use_motion_blur
 
     @use_motion_blur.setter
@@ -359,7 +360,13 @@ class Render(BaseCollection):
         self.scene.render.image_settings.file_format = "PNG"
         if self.run_render:
             self.scene.frame_end = self.batoms.nframe
-            self.scene.render.filepath = "{0}".format(self.output)
+            # Blender >= 5.0 cannot save to a bare relative path ("h2o.png"):
+            # it fails creating the empty parent directory. "//" paths are
+            # relative to the .blend file and are left alone.
+            output = str(self.output)
+            if not output.startswith("//"):
+                output = os.path.abspath(output)
+            self.scene.render.filepath = output
             bpy.ops.render.render(write_still=1, animation=self.coll.Brender.animation)
         else:
             print("saving to {0}.blend".format(self.output))

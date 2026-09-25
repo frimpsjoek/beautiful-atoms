@@ -323,7 +323,7 @@ class ObjectGN(BaseObject):
     def init_geometry_node_modifier(self, inputs=[]):
         """Init geometry node modifier"""
         # blender 4.0 use a interface to add sockets, both input and output
-        from ..utils.butils import build_gn_modifier
+        from ..utils.butils import build_gn_modifier, set_gn_input_attribute
 
         name = "GeometryNodes_%s" % self.obj_name
         modifier = build_gn_modifier(self.obj, name)
@@ -333,14 +333,12 @@ class ObjectGN(BaseObject):
                 socket = interface.new_socket(
                     name=input[0], socket_type=input[1], in_out="INPUT"
                 )
-                modifier["%s_use_attribute" % socket.identifier] = True
-                modifier["%s_attribute_name" % socket.identifier] = input[0]
+                set_gn_input_attribute(modifier, socket.identifier, input[0])
         else:
             for input in inputs:
                 modifier.node_group.inputs.new(input[1], input[0])
                 id = modifier.node_group.inputs[input[0]].identifier
-                modifier["%s_use_attribute" % id] = True
-                modifier["%s_attribute_name" % id] = input[0]
+                set_gn_input_attribute(modifier, id, input[0])
         return modifier
 
     def build_geometry_node(self):
@@ -674,7 +672,7 @@ class ObjectGN(BaseObject):
             raise ValueError("positions has wrong shape %s != %s." % (n, natom))
         if natom == 0:
             return
-        positions = positions.reshape((natom * 3, 1))
+        positions = positions.reshape(-1)
         self.obj.data.vertices.foreach_set("co", positions)
         self.obj.data.update()
         bpy.context.view_layer.objects.active = self.obj
@@ -806,7 +804,7 @@ class ObjectGN(BaseObject):
                 sk = obj.data.shape_keys.key_blocks.get(name)
             # Use the local position here
             positions = trajectory[i]
-            vertices = positions.reshape((nvert * 3, 1))
+            vertices = positions.reshape(-1)
             sk.data.foreach_set("co", vertices)
         self.update_mesh(obj)
 

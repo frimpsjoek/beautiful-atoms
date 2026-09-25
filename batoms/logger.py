@@ -34,9 +34,11 @@ def set_logger(version):
 
 
 def update_logging_level():
-    if "batoms" not in bpy.context.preferences.addons:
+    # Legacy add-on key is "batoms"; as an extension it is "bl_ext.<repo>.batoms"
+    keys = [key for key in bpy.context.preferences.addons.keys() if "batoms" in key]
+    if not keys:
         return
-    prefs = bpy.context.preferences.addons["batoms"].preferences
+    prefs = bpy.context.preferences.addons[keys[0]].preferences
     root_logger.setLevel(prefs.logging_level)
 
 

@@ -46,7 +46,7 @@ def draw_curve_from_vertices_bezier(
     nvert = len(vertices)
     spline.bezier_points.add(nvert - 1)
     # vertices = np.append(vertices, np.zeros((nvert, 1)), axis = 1)
-    vertices = vertices.reshape(-1, 1)
+    vertices = vertices.reshape(-1)
     spline.bezier_points.foreach_set("co", vertices)
     for i in range(nvert):
         spline.bezier_points[i].handle_right_type = "AUTO"
@@ -101,7 +101,7 @@ def draw_rope_from_vertices_nurbs(
     nvert = len(vertices)
     spline.points.add(nvert - 1)
     vertices = np.append(vertices, np.ones((nvert, 1)), axis=1)
-    vertices = vertices.reshape(-1, 1)
+    vertices = vertices.reshape(-1)
     # tilts = data['tilts']
     spline.points.foreach_set("co", vertices)
     # spline.points.foreach_set('tilt', tilts)
@@ -145,7 +145,7 @@ def curve2mesh(name, vertices, resolution_u=20, coll=None):
     nvert = len(vertices)
     spline.points.add(nvert - 1)
     vertices = np.append(vertices, np.ones((nvert, 1)), axis=1)
-    vertices = vertices.reshape(-1, 1)
+    vertices = vertices.reshape(-1)
     spline.points.foreach_set("co", vertices)
     obj = bpy.data.objects.new(name, crv)
     # if coll:
@@ -180,6 +180,14 @@ def draw_sheet_from_vertices_spline(
     normals = curve2mesh("%s-normals" % name, data["normals"], data["resolution"])
     profiles = data["profiles"]
     scales = data["scales"]
+    # scales assume (n - 1) * resolution evaluated points; Blender >= 5.0
+    # evaluates NURBS splines to a different count, so resample along the curve.
+    if scales is not None and len(scales) != len(vertices):
+        t_old = np.linspace(0.0, 1.0, len(scales))
+        t_new = np.linspace(0.0, 1.0, len(vertices))
+        scales = np.column_stack(
+            [np.interp(t_new, t_old, scales[:, i]) for i in range(scales.shape[1])]
+        )
     vertices, faces = build_mesh(vertices, normals, sides, profiles, scales)
     me = bpy.data.meshes.new(name)
     me.from_pydata(vertices, [], faces)

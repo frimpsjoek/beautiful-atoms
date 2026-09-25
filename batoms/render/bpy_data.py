@@ -1,4 +1,5 @@
 import bpy
+from ..utils.butils import EEVEE_ENGINE
 from bpy.props import (
     StringProperty,
     BoolProperty,
@@ -41,7 +42,7 @@ class Render(bpy.types.PropertyGroup):
 
     flag: BoolProperty(name="flag", default=False)
     label: StringProperty(name="label", default="X")
-    engine: StringProperty(name="engine", default="BLENDER_EEVEE_NEXT")
+    engine: StringProperty(name="engine", default=EEVEE_ENGINE)
     compute_device_type: StringProperty(name="compute_device_type", default="CUDA")
     animation: BoolProperty(name="animation", default=False)
     run_render: BoolProperty(name="run_render", default=True)

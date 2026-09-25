@@ -196,10 +196,12 @@ class Bcell(ObjectGN):
         positions[1:4, :][index] = value
         self.positions = positions
 
-    def __array__(self, dtype=float):
-        if dtype != float:
+    def __array__(self, dtype=None, copy=None):
+        # numpy >= 2 passes ``copy``; accepting it avoids a DeprecationWarning
+        if dtype is not None and dtype != float:
             raise ValueError("Cannot convert cell to array of type {}".format(dtype))
-        return self.local_array
+        array = self.local_array
+        return array.copy() if copy else array
 
     @property
     def width(self):

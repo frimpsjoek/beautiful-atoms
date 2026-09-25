@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 
 # Enum property.
-# Note: the getter/setter callback must use integer identifiers!
 logging_level_items = [
     ("DEBUG", "DEBUG", "", 0),
     ("INFO", "INFO", "", 1),
@@ -45,42 +44,26 @@ DEFAULT_REPO_NAME = "beautiful-atoms"
 DEFAULT_PLUGIN_NAME = "batoms"
 
 
-def get_plugin(key):
-    """Helper function to get plugin
-    Args:
-        key (_type_): _description_
+def update_plugin(key):
+    """Build an update callback that (un)registers plugin ``key``.
+
+    Blender >= 5.0 no longer exposes ``bpy.props`` values through
+    dict-style access (``self[key]``), so the value is kept in the
+    property's own storage and only the side effect lives here.
     """
 
-    def getter(self):
-        # self.get: returns the value of the custom property assigned to
-        # key or default when not found
-        value = self.bl_rna.properties[key].default
-        return self.get(key, value)
-
-    return getter
-
-
-def set_plugin(key):
-    """Helper function to set plugin
-
-    Args:
-        key (_type_): _description_
-        value (_type_): _description_
-    """
-
-    def setter(self, value):
+    def update(self, context):
         import importlib
 
-        self[key] = value
         plugin = importlib.import_module(".plugins.{}".format(key), package=__package__)
-        if value:
+        if getattr(self, key):
             plugin.register_class()
             logger.info("Enable {} plugin.".format(key))
         else:
             plugin.unregister_class()
-            logger.info("Disnable {} plugin.".format(key))
+            logger.info("Disable {} plugin.".format(key))
 
-    return setter
+    return update
 
 
 class BatomsDefaultPreference(bpy.types.Operator):
@@ -171,23 +154,12 @@ class BatomsDefaultStartup(bpy.types.Operator):
 class BatomsAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    def get_logging_level(self):
-        items = self.bl_rna.properties["logging_level"].enum_items
-        # self.get: returns the value of the custom property assigned to
-        # key or default when not found
-        return items[self.get("logging_level", 2)].value
-
-    def set_logging_level(self, value):
-        items = self.bl_rna.properties["logging_level"].enum_items
-        item = items[value]
-        level = item.identifier
-        # we need to update both the preference and the logger
-        self["logging_level"] = level
+    def logging_level_update(self, context):
         # Set the logging level for all child loggers of "batoms"
         update_logging_level()
         # Note the following logging info might not emit
         # if global level is higher than INFO
-        logger.info("Set logging level to: {}".format(level))
+        logger.info("Set logging level to: {}".format(self.logging_level))
 
     def batoms_setting_path_update(self, context):
         import os
@@ -209,80 +181,70 @@ class BatomsAddonPreferences(AddonPreferences):
     logging_level: EnumProperty(
         name="Logging Level",
         items=logging_level_items,
-        get=get_logging_level,
-        set=set_logging_level,
-        default=2,
+        update=logging_level_update,
+        default="WARNING",
     )
 
     isosurface: BoolProperty(
         name="isosurface",
         description="Enable isosurface plugin",
-        get=get_plugin("isosurface"),
-        set=set_plugin("isosurface"),
+        update=update_plugin("isosurface"),
         default=True,
     )
 
     molecular_surface: BoolProperty(
         name="molecular_surface",
         description="Enable molecular_surface plugin",
-        get=get_plugin("molecular_surface"),
-        set=set_plugin("molecular_surface"),
+        update=update_plugin("molecular_surface"),
         default=True,
     )
 
     real_interaction: BoolProperty(
         name="real_interaction",
         description="Enable real_interaction plugin",
-        get=get_plugin("real_interaction"),
-        set=set_plugin("real_interaction"),
+        update=update_plugin("real_interaction"),
         default=False,
     )
 
     magres: BoolProperty(
         name="magres",
         description="Enable magres plugin",
-        get=get_plugin("magres"),
-        set=set_plugin("magres"),
+        update=update_plugin("magres"),
         default=True,
     )
 
     highlight: BoolProperty(
         name="highlight",
         description="Enable highlight plugin",
-        get=get_plugin("highlight"),
-        set=set_plugin("highlight"),
+        update=update_plugin("highlight"),
         default=True,
     )
 
     cavity: BoolProperty(
         name="cavity",
         description="Enable cavity plugin",
-        get=get_plugin("cavity"),
-        set=set_plugin("cavity"),
+        update=update_plugin("cavity"),
         default=True,
     )
 
     crystal_shape: BoolProperty(
         name="crystal_shape",
         description="Enable crystal_shape plugin",
-        get=get_plugin("crystal_shape"),
-        set=set_plugin("crystal_shape"),
+        update=update_plugin("crystal_shape"),
         default=True,
     )
 
     lattice_plane: BoolProperty(
         name="lattice_plane",
         description="Enable lattice_plane plugin",
-        get=get_plugin("lattice_plane"),
-        set=set_plugin("lattice_plane"),
+        update=update_plugin("lattice_plane"),
         default=True,
     )
 
     template: BoolProperty(
         name="template",
         description="Enable template plugin",
-        get=get_plugin("template"),
-        set=set_plugin("template"),
+        update=update_plugin("template"),
         default=True,
     )
 
