@@ -38,11 +38,11 @@ Another package, [weas-widget](https://github.com/superstar54/weas-widget), allo
 ### Extension
 One can build the extension locally by following the steps below.
 
-Download wheels for ase and scikit-image. Use `--python-version=3.11` for Blender 4.2-4.5 and `--python-version=3.13` for Blender 5.x:
+Download wheels for the dependencies (ase, scikit-image; spglib, pymatgen, mp-api and openbabel-wheel for symmetry, Materials Project and SMILES support). Use `--python-version=3.11` for Blender 4.2-4.5 and `--python-version=3.13` for Blender 5.x. Then delete any `numpy-*.whl` from `batoms/wheels`: Blender ships its own numpy, and a second copy can shadow it with an incompatible build:
 ```
-pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=manylinux_2_17_x86_64
-pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=win_amd64
-pip download ase scikit-image --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=macosx_12_0_arm64
+pip download ase scikit-image spglib pymatgen mp-api openbabel-wheel --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=manylinux_2_17_x86_64
+pip download ase scikit-image spglib pymatgen mp-api openbabel-wheel --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=win_amd64
+pip download ase scikit-image spglib pymatgen mp-api openbabel-wheel --dest ./batoms/wheels --only-binary=:all: --python-version=3.11 --platform=macosx_12_0_arm64
 ```
 
 Update the wheels in the `batoms/blender_manifest.toml` file.
