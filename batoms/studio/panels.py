@@ -30,7 +30,12 @@ class BATOMS_PT_studio_figure(_Base, bpy.types.Panel):
         if s.journal == "CUSTOM":
             col.prop(s, "width_mm")
         col.prop(s, "dpi")
-        col.label(text=f"{r.resolution_x} x {r.resolution_y} px", icon="IMAGE_DATA")
+        from .common import width_pixels
+
+        px, mm = width_pixels(s)
+        col.label(text=f"Target: {px} px wide = {mm:g} mm at {s.dpi} dpi", icon="IMAGE_DATA")
+        if r.resolution_x != px:
+            col.label(text=f"Scene now {r.resolution_x} x {r.resolution_y}: press Set up figure", icon="ERROR")
         col.prop(s, "transparent")
         col.prop(s, "export_path", text="")
         col.operator("batoms.studio_render", icon="RENDER_STILL")
