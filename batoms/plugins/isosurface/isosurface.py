@@ -110,7 +110,7 @@ class Isosurface(BaseObject):
         clean_coll_object_by_type(self.batoms.coll, "ISOSURFACE")
         isosurface = self.build_isosurface(self.batoms.cell)
         for name, isosurface_data in isosurface.items():
-            if isosurface_name.upper() != "ALL" and name.name != isosurface_name:
+            if isosurface_name.upper() != "ALL" and name != isosurface_name:
                 continue
             name = "%s_%s_%s" % (self.label, "isosurface", name)
             self.delete_obj(name)

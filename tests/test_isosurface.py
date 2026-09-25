@@ -89,3 +89,13 @@ def test_isosurface_uilist(h2o_homo):
     assert h2o.coll.Bisosurface.ui_list_index == 0
     bpy.ops.surface.isosurface_add(name="negative")
     assert h2o.coll.Bisosurface.ui_list_index == 1
+
+
+def test_draw_single(h2o_homo):
+    """draw() with a setting name draws only that isosurface (used to crash on name.name)"""
+    h2o = h2o_homo
+    h2o.isosurface.settings["1"] = {"level": -0.001}
+    h2o.isosurface.settings["2"] = {"level": 0.001, "color": [0, 0, 0.8, 0.5]}
+    h2o.isosurface.draw("2")
+    names = [o.name for o in bpy.data.objects if o.batoms.type == "ISOSURFACE"]
+    assert names == [f"{h2o.label}_isosurface_2"]
