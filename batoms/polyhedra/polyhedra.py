@@ -150,7 +150,9 @@ class Polyhedra(ObjectGN):
         self.settings.coll.objects.link(obj)
         obj.batoms.type = "POLYHEDRA"
         obj.batoms.label = self.label
-        obj.parent = self.batoms.obj
+        from ..utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         #
         name = "%s_polyhedra_offset" % self.label
         self.delete_obj(name)
@@ -167,7 +169,9 @@ class Polyhedra(ObjectGN):
         self.set_trajectory()
         # self.assign_materials()
         self.update_geometry_node_material()
-        obj.parent = self.obj
+        from ..utils.butils import attach_child
+
+        attach_child(obj, self.obj)
         logger.debug("polyhedras: build_object: {0:10.2f} s".format(time() - tstart))
 
     def assign_materials(self):

@@ -299,7 +299,9 @@ class LatticePlane(PluginObject):
                     plane,
                     coll=self.batoms.coll,
                 )
-                obj.parent = self.batoms.obj
+                from ...utils.butils import attach_child
+
+                attach_child(obj, self.batoms.obj)
                 obj.batoms.type = "LATTICEPLANE"
                 obj.batoms.label = self.batoms.label
                 if plane["show_edge"]:
@@ -310,7 +312,9 @@ class LatticePlane(PluginObject):
                         datas=plane["edges_cylinder"],
                         coll=self.batoms.coll,
                     )
-                    obj.parent = self.batoms.obj
+                    from ...utils.butils import attach_child
+
+                    attach_child(obj, self.batoms.obj)
                     obj.batoms.type = "LATTICEPLANE"
                     obj.batoms.label = self.batoms.label
                 if plane["color_by"] != "None":

@@ -140,7 +140,9 @@ class Boundary(ObjectGN):
         obj.location = location
         obj.batoms.type = "BOUNDARY"
         obj.batoms.label = self.batoms.label
-        obj.parent = self.batoms.obj
+        from .utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         self.batoms.coll.batoms.boundary.flag = True
         #
         bpy.context.view_layer.update()

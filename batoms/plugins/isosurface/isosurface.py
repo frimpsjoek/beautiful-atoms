@@ -121,7 +121,9 @@ class Isosurface(BaseObject):
             )
             obj.batoms.type = "ISOSURFACE"
             obj.batoms.label = self.label
-            obj.parent = self.batoms.obj
+            from ...utils.butils import attach_child
+
+            attach_child(obj, self.batoms.obj)
             if isosurface_data["attribute_data"] is not None:
                 from ...utils.attribute import set_mesh_attribute
 

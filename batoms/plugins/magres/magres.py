@@ -174,7 +174,9 @@ class Magres(BaseObject):
             material_style=magres.material_style,
         )
         obj.data.materials.append(mat)
-        obj.parent = self.batoms.obj
+        from ...utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         obj.batoms.type = "MS"
         obj.batoms.label = self.batoms.label
         logger.debug("Draw MS: %s" % (time() - tstart))

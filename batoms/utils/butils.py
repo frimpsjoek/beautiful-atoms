@@ -13,6 +13,54 @@ EEVEE_ENGINE = (
 )
 
 
+def attach_child(child, parent):
+    """Parent a helper object (cell, boundary, bonds, polyhedra, surfaces...)
+    to its structure and lock its object transform.
+
+    Helpers are drawn relative to the structure, so moving one on its own
+    (e.g. grabbing the cell with G) silently detaches it from the atoms and
+    periodic images. Locking keeps them rigid; move the parent instead.
+    Edit Mode (e.g. reshaping the cell) is not affected by these locks.
+    """
+    child.parent = parent
+    child.lock_location = (True, True, True)
+    child.lock_rotation = (True, True, True)
+    child.lock_rotation_w = True
+    child.lock_scale = (True, True, True)
+
+
+def _axis_vector(obj, axis, orient_type):
+    vec = Vector([1.0 if c == axis.upper() else 0.0 for c in "XYZ"])
+    if orient_type.upper() == "LOCAL":
+        vec = (obj.matrix_world.to_3x3() @ vec).normalized()
+    return vec
+
+
+def world_translate(obj, displacement):
+    """Move an object by ``displacement`` (world space) without operators."""
+    mw = obj.matrix_world.copy()
+    mw.translation += Vector(displacement)
+    obj.matrix_world = mw
+
+
+def world_rotate(obj, angle, axis="Z", orient_type="GLOBAL"):
+    """Rotate an object by ``angle`` (radians) about its origin."""
+    origin = obj.matrix_world.translation.copy()
+    rot = Matrix.Rotation(angle, 4, _axis_vector(obj, axis, orient_type))
+    obj.matrix_world = (
+        Matrix.Translation(origin) @ rot @ Matrix.Translation(-origin) @ obj.matrix_world
+    )
+
+
+def world_mirror(obj, axis="Z", orient_type="GLOBAL"):
+    """Mirror an object through the plane normal to ``axis`` at its origin."""
+    origin = obj.matrix_world.translation.copy()
+    flip = Matrix.Scale(-1.0, 4, _axis_vector(obj, axis, orient_type))
+    obj.matrix_world = (
+        Matrix.Translation(origin) @ flip @ Matrix.Translation(-origin) @ obj.matrix_world
+    )
+
+
 def shade_smooth(obj):
     """Smooth-shade one mesh object through the data API.
 

@@ -132,10 +132,11 @@ class BaseObject:
 
         >>> h.translate([0, 0, 5])
         """
-        object_mode()
-        bpy.ops.object.select_all(action="DESELECT")
-        self.obj.select_set(True)
-        bpy.ops.transform.translate(value=displacement)
+        from ..utils.butils import world_translate
+
+        # data API, not bpy.ops.transform: works in any mode/context and is
+        # not blocked by the transform locks on helper objects
+        world_translate(self.obj, displacement)
 
     def rotate(self, angle, axis="Z", orient_type="GLOBAL"):
         """Rotate atomic based on a axis and an angle.
@@ -152,13 +153,9 @@ class BaseObject:
         >>> h.rotate(90, 'Z')
 
         """
-        object_mode()
-        bpy.ops.object.select_all(action="DESELECT")
-        self.obj.select_set(True)
-        bpy.context.view_layer.objects.active = self.obj
-        bpy.ops.transform.rotate(
-            value=angle, orient_axis=axis.upper(), orient_type=orient_type
-        )
+        from ..utils.butils import world_rotate
+
+        world_rotate(self.obj, angle, axis, orient_type)  # angle in radians
 
     def delete_obj(self, name):
         if name in bpy.data.objects:

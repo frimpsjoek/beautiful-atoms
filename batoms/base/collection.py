@@ -44,10 +44,9 @@ class BaseCollection:
 
         >>> h2o.translate([0, 0, 5])
         """
-        object_mode()
-        bpy.ops.object.select_all(action="DESELECT")
-        self.obj.select_set(True)
-        bpy.ops.transform.translate(value=displacement)
+        from ..utils.butils import world_translate
+
+        world_translate(self.obj, displacement)
 
     def rotate(self, angle, axis="Z", orient_type="GLOBAL"):
         """Rotate atomic based on a axis and an angle.
@@ -64,13 +63,9 @@ class BaseCollection:
         >>> h2o.rotate(90, 'Z')
 
         """
-        object_mode()
-        bpy.ops.object.select_all(action="DESELECT")
-        self.obj.select_set(True)
-        angle = angle / 180.0 * np.pi
-        bpy.ops.transform.rotate(
-            value=angle, orient_axis=axis.upper(), orient_type=orient_type
-        )
+        from ..utils.butils import world_rotate
+
+        world_rotate(self.obj, angle / 180.0 * np.pi, axis, orient_type)  # degrees in
 
     def mirror(self, axis="Z", orient_type="GLOBAL"):
         """mirror atomic based on a axis.
@@ -87,14 +82,9 @@ class BaseCollection:
         >>> h2o.mirror('X')
 
         """
-        object_mode()
-        bpy.ops.object.select_all(action="DESELECT")
-        self.obj.select_set(True)
-        constraint_axis = [False, False, False]
-        constraint_axis["XYZ".index(axis.upper())] = True
-        bpy.ops.transform.mirror(
-            constraint_axis=constraint_axis, orient_type=orient_type
-        )
+        from ..utils.butils import world_mirror
+
+        world_mirror(self.obj, axis, orient_type)
 
 
 def tuple2string(index):

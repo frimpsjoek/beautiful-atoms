@@ -101,7 +101,9 @@ class VolumetricData(Setting):
         mesh.update()
         obj = bpy.data.objects.new(name, mesh)
         obj.data = mesh
-        obj.parent = self.parent.obj
+        from .utils.butils import attach_child
+
+        attach_child(obj, self.parent.obj)
         obj.batoms.type = "VOLUME"
         obj.batoms.volume.shape = shape
         self.coll.objects.link(obj)

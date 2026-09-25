@@ -125,7 +125,9 @@ class SearchBond(ObjectGN):
         obj.batoms.type = "BOND"
         obj.batoms.label = self.batoms.label
         obj.Bbond.label = self.batoms.label
-        obj.parent = self.batoms.obj
+        from ..utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         #
         name = "%s_search_bond_offset" % self.label
         self.delete_obj(name)
@@ -135,7 +137,9 @@ class SearchBond(ObjectGN):
         obj = bpy.data.objects.new(name, mesh)
         self.batoms.coll.objects.link(obj)
         obj.hide_set(True)
-        obj.parent = self.obj
+        from ..utils.butils import attach_child
+
+        attach_child(obj, self.obj)
         bpy.context.view_layer.update()
         self.set_attributes(attributes)
         self.init_geometry_node_modifier(default_GroupInput)

@@ -235,7 +235,9 @@ class MolecularSurface(BaseObject):
         )
         obj.data.materials.append(mat)
 
-        obj.parent = self.batoms.obj
+        from ...utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         obj.batoms.type = "MS"
         obj.batoms.label = self.batoms.label
         logger.debug("Draw SAS: %s" % (time() - tstart))
@@ -316,7 +318,9 @@ class MolecularSurface(BaseObject):
             material_style=isosurface["material_style"],
         )
         obj.data.materials.append(mat)
-        obj.parent = self.batoms.obj
+        from ...utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         obj.batoms.type = "MS"
         obj.batoms.label = self.batoms.label
         logger.debug("Time SES: %s" % (time() - tstart))

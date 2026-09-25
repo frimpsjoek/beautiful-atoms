@@ -179,7 +179,9 @@ class Highlight(ObjectGN, PluginObject):
         for att in default_attributes:
             self.add_attribute(**att)
         # add cell object as its child
-        obj.parent = self.batoms.obj
+        from ...utils.butils import attach_child
+
+        attach_child(obj, self.batoms.obj)
         self.set_attributes(attributes)
         self.init_geometry_node_modifier(default_GroupInput)
         self.build_geometry_node()

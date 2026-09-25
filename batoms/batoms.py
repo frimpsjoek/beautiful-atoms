@@ -241,8 +241,10 @@ class Batoms(BaseCollection, ObjectGN):
         obj.batoms.type = "BATOMS"
         obj.batoms.label = label
         self.coll.objects.link(obj)
-        # add cell object as its child
-        self.cell.obj.parent = self.obj
+        # add cell object as its child (locked: move the structure, not the cell)
+        from .utils.butils import attach_child
+
+        attach_child(self.cell.obj, self.obj)
         # add attributes
         for att in default_attributes:
             self.add_attribute(**att)
@@ -936,7 +938,9 @@ class Batoms(BaseCollection, ObjectGN):
         instancer = self.build_instancer(
             radius=radius, scale=scale, subdivisions=subdivisions, shape="ICO_SPHERE"
         )
-        instancer.parent = self.obj
+        from .utils.butils import attach_child
+
+        attach_child(instancer, self.obj)
 
     @property
     def shape(self):
@@ -967,7 +971,9 @@ class Batoms(BaseCollection, ObjectGN):
         instancer = self.build_instancer(
             radius=radius, scale=scale, shape=shapes[shape]
         )
-        instancer.parent = self.obj
+        from .utils.butils import attach_child
+
+        attach_child(instancer, self.obj)
 
     def delete(self, index=[]):
         """Delete atoms by index.
