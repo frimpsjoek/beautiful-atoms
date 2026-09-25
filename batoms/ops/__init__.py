@@ -13,9 +13,12 @@ from . import (
     measure,
     manual_mapping,
     ops_render,
+    ops_snap,
 )
 
 classes = [
+    ops_snap.BATOMS_OT_snap,
+    ops_snap.BATOMS_PT_snap,
     add_object.AddMolecule,
     add_object.AddBulk,
     add_object.AddAtoms,
